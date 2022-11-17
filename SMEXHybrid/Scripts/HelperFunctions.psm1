@@ -186,7 +186,7 @@ function NewAzureADUser
     # Create AAD user
     try
     {
-        $Username = $UserPrincipalName.Split("@")[0].ToUpper()
+        $Username = $UserPrincipalName.Split("@")[0].ToLower()
         $NewUser = New-AzureADUser -DisplayName $Username -AccountEnabled $true -UserPrincipalName $UserPrincipalName -PasswordProfile $PasswordProfile -MailNickName $Username -ErrorAction Stop | Out-Null
         $Message = "Successfully created user"
         Write-Host -ForegroundColor Green ($Message + " " + $Username)
@@ -315,8 +315,53 @@ function AssignAADAdminRole
         [string]$RoleName = "Global Administrator"
     )
 
-    $AdminRoleDefinition = Get-AzureADMSRoleDefinition | Where-Object Displayname -EQ $Rolename
-    $AdminRoleAssignment = New-AzureADMSRoleAssignment -DirectoryScopeId '/' -RoleDefinitionId $AdminRoleDefinition.Id -PrincipalId $UserPrincipalName
+    $LogPrefixRoleAssignment = "AAD Role Assignment"
+
+    try
+    {
+        $UserObject = Get-AzureADUser -ObjectId $UserPrincipalName -ErrorAction Stop
+    }
+
+    catch
+    {
+        $Errormessage = "Unable to fetch user $UserPrincipalName"
+        Write-Host -ForegroundColor Red -Message $Errormessage -Exception $_
+        Write-LogFile -LogPrefix $LogPrefixRoleAssignment -Message $Errormessage -ErrorInfo $_
+        Throw $_
+        Exit
+    }
+
+    try
+    {
+        $AdminRoleDefinition = Get-AzureADMSRoleDefinition | Where-Object Displayname -EQ $Rolename -ErrorAction Stop
+    }
+
+    catch
+    {
+        $Errormessage = "Unable to fetch role definition for $RoleName"
+        Write-Host -ForegroundColor Red -Message $Errormessage -Exception $_
+        Write-LogFile -LogPrefix $LogPrefixRoleAssignment -Message $Errormessage -ErrorInfo $_
+        Throw $_
+        Exit
+    }
+
+    try
+    {
+        New-AzureADMSRoleAssignment -DirectoryScopeId '/' -RoleDefinitionId $AdminRoleDefinition.Id -PrincipalId $UserObject.objectId -ErrorAction Stop
+        $Message = "Successfully assigned role $RoleName to user $UserPrincipalName."
+        Write-Host -ForegroundColor Green $Message
+        Write-LogFile -LogPrefix $LogPrefixRoleAssignment -Message $Message
+    }
+
+    catch
+    {
+        $Errormessage = "Unable to fetch role definition for $RoleName"
+        Write-Host -ForegroundColor Red -Message $Errormessage -Exception $_
+        Write-LogFile -LogPrefix $LogPrefixRoleAssignment -Message $Errormessage -ErrorInfo $_
+        Throw $_
+        Exit
+    }
+
 
 }
 

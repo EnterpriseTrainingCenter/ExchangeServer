@@ -1,1 +1,1 @@
-Scripts used to prepare the lab environment
+Scripts used to prepare and cleanup the lab environment

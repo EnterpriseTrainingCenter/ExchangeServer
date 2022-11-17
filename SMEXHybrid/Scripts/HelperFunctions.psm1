@@ -191,7 +191,7 @@ function NewAzureADUser
         $Message = "Successfully created user"
         Write-Host -ForegroundColor Green ($Message + " " + $Username)
         Write-LogFile -LogPrefix $UserPrincipalName -Message $Message
-        WriteUserPasswordsToFile -Username $UserPrincipalName -Password $SecurePassword
+        WriteUserPasswordsToFile -Username $UserPrincipalName -Password $ClearTextPwd
         Return $NewUser
     }
     

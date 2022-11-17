@@ -17,7 +17,9 @@ $TLS12Protocol = [System.Net.SecurityProtocolType] 'Tls12'
 #
 # Variable definition
 #
-$HelperModulePath = "https://github.com/EnterpriseTrainingCenter/ExchangeServer/tree/main/SMEXHybrid/Scripts/HelperFunctions.psm1"
+
+#$HelperModulePath = "https://github.com/EnterpriseTrainingCenter/ExchangeServer/tree/main/SMEXHybrid/Scripts/HelperFunctions.psm1"
+$HelperModulePath = (Split-Path $MyInvocation.MyCommand.Path -Parent) + "\HelperFunctions.psm1"
 
 # $Tenantname = "myetcat.onmicrosoft.com"
 #
@@ -50,7 +52,7 @@ else
 $StudentRoleDefinitionName = "Student DNS Zone Admin"
 
 # Trainer DNS Admin Account
-# $TrainerDNSAdminAccount = "trainer-dns-admin@myetc.at"
+$TrainerDNSAdminAccount = "trainer-dns-admin@myetc.at"
 
 # Logfile path and logging
 [string]$LogFileNamePrefix = "Create_" + $CourseID + "_DNSZones"
@@ -65,7 +67,8 @@ $Script:NoLogging
 # Main Script
 
 # import or update modules and assemblies
-Import-Module 
+Import-Module $HelperModulePath
+
 if ($InstallOrUpdateModules)
 {   
     Write-Host -ForegroundColor Green "Updating and importing modules..."

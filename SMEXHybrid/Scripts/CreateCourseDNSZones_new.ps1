@@ -17,7 +17,8 @@ $TLS12Protocol = [System.Net.SecurityProtocolType] 'Tls12'
 #
 # Variable definition
 #
-# 
+$HelperModulePath = "https://github.com/EnterpriseTrainingCenter/ExchangeServer/tree/main/SMEXHybrid/Scripts/HelperFunctions.psm1"
+
 # $Tenantname = "myetcat.onmicrosoft.com"
 #
 # Store TenantID, AppID nad Certificate Thumbrprint fpr Logon

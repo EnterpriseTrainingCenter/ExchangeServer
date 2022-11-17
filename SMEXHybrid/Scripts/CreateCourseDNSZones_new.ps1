@@ -52,7 +52,7 @@ else
 $StudentRoleDefinitionName = "Student DNS Zone Admin"
 
 # Trainer DNS Admin Account
-$TrainerDNSAdminAccount = "trainer-dns-admin@myetc.at"
+#$TrainerDNSAdminAccount = "trainer-dns-admin@myetc.at"
 
 # Logfile path and logging
 [string]$LogFileNamePrefix = "Create_" + $CourseID + "_DNSZones"
@@ -64,7 +64,11 @@ $Script:NoLogging
 # End Variable definition
 #
 
+###############################################
+#
 # Main Script
+#
+###############################################
 
 # import or update modules and assemblies
 Import-Module $HelperModulePath
@@ -90,15 +94,15 @@ else
 }
 
 # Connect to Azure
-ConnectToOnlineService -ServiceName Azure
+ConnectToOnlineService -ServiceName Azure -TenantId $TenantID -CertificateThumbprint $CertThumbprint -ApplicationId $Appid -UseAppId
 
 # Connect to Azure AD
-ConnectToOnlineService -ServiceName AzureAD
+ConnectToOnlineService -ServiceName AzureAD -TenantId $TenantID -CertificateThumbprint $CertThumbprint -ApplicationId $Appid -UseAppId
 
 # Retrieve parent DNS zone information
 $ParentZoneInfo = RetrieveParentDNSZone -ParentZoneName $ParentZoneName
 
-# Retrieve ObjectId of Azure AD User Group "StudentDNSAdmins"
+# Retrieve ObjectId of AzureAD User Group "StudentDNSAdmins"
 [string]$StudentDNSAdminGroupID = (Get-AzureADGroup -Filter "Displayname eq 'StudentDNSAdmins'").ObjectID
 
 # Loop through usercount and perform the magic...
@@ -123,7 +127,7 @@ for ($i = 1; $i -le $NumberOfStudents; $i++)
     NewDNSChildZone -ZoneName $StudentZoneID -ParentZoneName $ParentZoneInfo.Name -ResourceGroup $ParentZoneInfo.ResourceGroupName
     
     # Assign RBAC role for student user to DNS child zone
-    AssignDNSAdminRole -ZoneName $StudentZoneID -SignInName $StudentUPN -Role $StudentRoleDefinitionName
+    AssignAzureRole -Resourcename $StudentZoneID -SignInName $StudentUPN -Role $StudentRoleDefinitionName
     
     # Add student user account to dashboard group
     AddUserToGroup -UserPrincipalName $StudentUPN -GroupID $StudentDNSAdminGroupID

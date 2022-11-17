@@ -249,7 +249,9 @@ function ConnectToOnlineService
         [Parameter(ParameterSetName = "AppId")]
         [switch]$UseAppId,
         [Parameter(Mandatory = $true, ParameterSetName = "AppId")]
-        [string]$CertThumbprint
+        [string]$CertificateThumbprint,
+        [Parameter(Mandatory = $true, ParameterSetName = "AppId")]
+        [string]$ApplicationID
     )
     
     $LogPrefixConnection = "Connection"
@@ -260,9 +262,9 @@ function ConnectToOnlineService
         {
             "Azure"
             {
-                if ($Appid)
+                if ($ApplicationID)
                 {
-                    Connect-AzAccount -ApplicationId $Appid -CertificateThumbprint $CertThumbprint -Tenant $TenantID -ErrorAction Stop
+                    Connect-AzAccount -ApplicationId $ApplicationID -CertificateThumbprint $CertificateThumbprint -Tenant $TenantID -ErrorAction Stop
                 }
 
                 else
@@ -273,9 +275,9 @@ function ConnectToOnlineService
                 
             "AzureAD"
             {
-                if ($Appid)
+                if ($ApplicationID)
                 {
-                    Connect-AzureAD -ApplicationId $Appid -CertificateThumbprint $CertThumbprint -Tenant $TenantID -ErrorAction Stop
+                    Connect-AzureAD -ApplicationId $ApplicationID -CertificateThumbprint $CertificateThumbprint -Tenant $TenantID -ErrorAction Stop
                 }
 
                 else
@@ -317,7 +319,7 @@ function AssignAADAdminRole
 
 }
 
-function AssignDNSAdminRole
+function AssignAzureRole
 {
     # Function to assign Azure roles to user accounts
 

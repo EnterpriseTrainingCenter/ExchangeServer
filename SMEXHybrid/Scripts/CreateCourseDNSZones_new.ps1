@@ -57,7 +57,7 @@ $StudentRoleDefinitionName = "Student DNS Zone Admin"
 # Logfile path and logging
 [string]$LogFileNamePrefix = "Create_" + $CourseID + "_DNSZones"
 [string]$LogfileFullPath = Join-Path -Path $BasePath (Join-Path "Logs" ($LogFileNamePrefix + "_{0:yyyyMMdd-HHmmss}.log" -f [DateTime]::Now))
-$Script:NoLogging
+$NoLogging
 
 #File with user passwords
 [string]$UserPasswordsFile = Join-Path -Path $BasePath (Join-Path "Passwords" ($CourseID + "_Student-DNS-Admin-Passwords_{0:yyyyMMdd-HHmmss}.txt" -f [DateTime]::Now))

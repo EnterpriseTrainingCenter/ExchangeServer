@@ -28,16 +28,17 @@ function Write-LogFile
     if (!$Script:NoLogging)
     {
         # Create the Script:Logfile and folder structure if it doesn't exist
-        if (-not (Test-Path $Script:LogfileFullPath -PathType Leaf))
+        if (-not (Test-Path $LogfileFullPath -PathType Leaf))
         {
-            New-Item -ItemType File -Path $Script:LogfileFullPath -Force -Confirm:$false -WhatIf:$false | Out-Null
-            Add-Content -Value "Logging started." -Path $Script:LogfileFullPath -Encoding UTF8 -WhatIf:$false -Confirm:$false
+            New-Item -ItemType File -Path $LogfileFullPath -Force -Confirm:$false -WhatIf:$false | Out-Null
+            Add-Content -Value "Logging started." -Path $LogfileFullPath -Encoding UTF8 -WhatIf:$false -Confirm:$false
         }
 
         # Write to the Script:Logfile
-        Add-Content -Value $logLine -Path $Script:LogfileFullPath -Encoding UTF8 -WhatIf:$false -Confirm:$false
+        Add-Content -Value $logLine -Path $LogfileFullPath -Encoding UTF8 -WhatIf:$false -Confirm:$false
         Write-Verbose $logLine
     }
+
     else
     {
         Write-Host $logLine
@@ -376,7 +377,7 @@ function RetrieveParentDNSZone
     {
         $ParentZone = Get-AzDnsZone | Where-Object Name -EQ $ParentZoneName -ErrorAction Stop
         $Message = "Successfully retrieved properties from parent DNS zone"
-        #            Write-Verbose -Message ($Message + " for zone " + $ParentZoneName)
+        # Write-Verbose -Message ($Message + " for zone " + $ParentZoneName)
         Write-LogFile -LogPrefix $ParentZoneName -Message $Message
         Return $ParentZone
     }
@@ -384,8 +385,8 @@ function RetrieveParentDNSZone
     catch
     {
         $Errormessage = "Could not retrieve parent DNS Zone properties."
-        #            Write-Error -Message $Errormessage -Exception $_
-        Write-LogFile -LogPrefix $ParentZoneName -Message $Errormessage -Exception $_
+        # Write-Error -Message $Errormessage -Exception $_
+        Write-LogFile -LogPrefix $ParentZoneName -Message $Errormessage -ErrorInfo $_
         Throw $_
         Exit
     }

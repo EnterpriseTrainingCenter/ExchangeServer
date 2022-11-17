@@ -10,19 +10,19 @@ function Write-LogFile
         [Parameter(Mandatory = $true)]
         [string]$Message,
         [Parameter(Mandatory = $false)]
-        [string]$LogPrefix,
+        [string]$LogSuffix,
         [System.Management.Automation.ErrorRecord]$ErrorInfo = $null
     )
 
     # Prefix the string to write with the current Date and Time, add error message if present...
     if ($ErrorInfo)
     {
-        $logLine = "{0:d.M.y H:mm:ss} : {1}: {2} Error: {3}" -f [DateTime]::Now, $LogPrefix, $Message, $ErrorInfo.Exception.Message
+        $logLine = "{0:d.M.y H:mm:ss}: ERROR {1} {2}: {3}" -f [DateTime]::Now, $Message, $LogSuffix, $ErrorInfo.Exception.Message
     }
 
     else
     {
-        $logLine = "{0:d.M.y H:mm:ss} : {1}: {2}" -f [DateTime]::Now, $LogPrefix, $Message
+        $logLine = "{0:d.M.y H:mm:ss}: INFO {1} {2}" -f [DateTime]::Now, $Message, $LogSuffix
     }
 
     if (!$Script:NoLogging)
@@ -95,14 +95,14 @@ function NewDNSChildZone
         New-AzDnsZone -Name $ZoneName -ParentZoneName $ParentZoneName -ResourceGroupName $ResourceGroup -ErrorAction Stop
         $Message = "Successfully created DNS zone"
         Write-Host -ForegroundColor Green ($Message + " " + $ZoneName)
-        Write-LogFile -LogPrefix $ZoneName -Message $Message
+        Write-LogFile -LogSuffix $ZoneName -Message $Message
     }
     
     catch
     {
         $Errormessage = "Could not create DNS zone"
         Write-Host -ForegroundColor Red ($Errormessage + " " + $ZoneName) -Exception $_
-        Write-LogFile -LogPrefix $ZoneName -Message $Errormessage -ErrorInfo $_
+        Write-LogFile -LogSuffix $ZoneName -Message $Errormessage -ErrorInfo $_
     }
 }
 
@@ -190,7 +190,7 @@ function NewAzureADUser
         $NewUser = New-AzureADUser -DisplayName $Username -AccountEnabled $true -UserPrincipalName $UserPrincipalName -PasswordProfile $PasswordProfile -MailNickName $Username -ErrorAction Stop | Out-Null
         $Message = "Successfully created user"
         Write-Host -ForegroundColor Green ($Message + " " + $Username)
-        Write-LogFile -LogPrefix $UserPrincipalName -Message $Message
+        Write-LogFile -LogSuffix $UserPrincipalName -Message $Message
         WriteUserPasswordsToFile -Username $UserPrincipalName -Password $SecurePassword
         Return $NewUser
     }
@@ -199,7 +199,7 @@ function NewAzureADUser
     {
         $Errormessage = "Could not create user"
         Write-Host -ForegroundColor Red ($Errormessage + " " + $Username + ":" + $_)
-        Write-LogFile -LogPrefix $UserPrincipalName -Message $Errormessage -ErrorInfo $_
+        Write-LogFile -LogSuffix $UserPrincipalName -Message $Errormessage -ErrorInfo $_
     }
 }
 
@@ -215,19 +215,19 @@ function AddUserToGroup
         [string]$Groupname = "StudentDNSAdmins"
     )
 
-    $GroupLogPrefix = "Group $($Groupname)"
+    $GroupLogSuffix = $Groupname
 
     try
     {
         $ReferenceUserID = (Get-AzureADUser -ObjectId $UserPrincipalName).ObjectID
         Add-AzureADGroupMember -ObjectId $GroupID -RefObjectId $ReferenceUserID -ErrorAction Stop
-        Write-LogFile -Message "Sucessfully added User $UserPrincipalName as member of group." -LogPrefix $GroupLogPrefix    
+        Write-LogFile -Message "Sucessfully added User $UserPrincipalName as member of group" -LogSuffix $GroupLogSuffix    
     }
     
     catch
     {
-        $GroupErrorMessage = "Could not add User $UserPrincipalName as member if the group"
-        Write-LogFile -LogPrefix $GroupLogPrefix -Message $GroupErrorMessage -ErrorInfo $_
+        $GroupErrorMessage = "Could not add User $UserPrincipalName as member of group"
+        Write-LogFile -LogSuffix $GroupLogSuffix -Message $GroupErrorMessage -ErrorInfo $_
     }
 }
 
@@ -255,8 +255,6 @@ function ConnectToOnlineService
         [string]$ApplicationID
     )
     
-    $LogPrefixConnection = "Connection"
-
     try
     {
         Switch ($ServiceName)
@@ -288,16 +286,16 @@ function ConnectToOnlineService
             }
         }
         
-        $Message = "Successfully connected to $ServiceName Tenant."
+        $Message = "Successfully connected to $ServiceName in Tenant"
         Write-Host -ForegroundColor Green $Message
-        Write-LogFile -LogPrefix $LogPrefixConnection -Message $Message
+        Write-LogFile -LogSuffix $TenantID -Message $Message
     }
 
     catch
     {
-        $Errormessage = "Could not connect to $ServiceName"
+        $Errormessage = "Could not connect to $ServiceName in Tenant"
         Write-Host -ForegroundColor Red -Message $Errormessage -Exception $_
-        Write-LogFile -LogPrefix $LogPrefixConnection -Message $Errormessage -ErrorInfo $_
+        Write-LogFile -LogSuffix $TenantID -Message $Errormessage -ErrorInfo $_
         Throw $_
         Exit
     }
@@ -315,7 +313,7 @@ function AssignAADAdminRole
         [string]$RoleName = "Global Administrator"
     )
 
-    $LogPrefixRoleAssignment = "AAD Role Assignment"
+    $LogSuffixRoleAssignment = "AAD Role Assignment"
 
     try
     {
@@ -324,9 +322,9 @@ function AssignAADAdminRole
 
     catch
     {
-        $Errormessage = "Unable to fetch user $UserPrincipalName"
+        $Errormessage = "Unable to fetch user $UserPrincipalName for"
         Write-Host -ForegroundColor Red -Message $Errormessage -Exception $_
-        Write-LogFile -LogPrefix $LogPrefixRoleAssignment -Message $Errormessage -ErrorInfo $_
+        Write-LogFile -LogSuffix $LogSuffixRoleAssignment -Message $Errormessage -ErrorInfo $_
         Throw $_
         Exit
     }
@@ -338,9 +336,9 @@ function AssignAADAdminRole
 
     catch
     {
-        $Errormessage = "Unable to fetch role definition for $RoleName"
+        $Errormessage = "Unable to fetch role definition for $RoleName for"
         Write-Host -ForegroundColor Red -Message $Errormessage -Exception $_
-        Write-LogFile -LogPrefix $LogPrefixRoleAssignment -Message $Errormessage -ErrorInfo $_
+        Write-LogFile -LogSuffix $LogSuffixRoleAssignment -Message $Errormessage -ErrorInfo $_
         Throw $_
         Exit
     }
@@ -350,14 +348,14 @@ function AssignAADAdminRole
         New-AzureADMSRoleAssignment -DirectoryScopeId '/' -RoleDefinitionId $AdminRoleDefinition.Id -PrincipalId $UserObject.objectId -ErrorAction Stop
         $Message = "Successfully assigned role $RoleName to user $UserPrincipalName."
         Write-Host -ForegroundColor Green $Message
-        Write-LogFile -LogPrefix $LogPrefixRoleAssignment -Message $Message
+        Write-LogFile -Message $Message
     }
 
     catch
     {
-        $Errormessage = "Unable to fetch role definition for $RoleName"
+        $Errormessage = "Unable to assign role $RoleName to user $UserPrincipalName"
         Write-Host -ForegroundColor Red -Message $Errormessage -Exception $_
-        Write-LogFile -LogPrefix $LogPrefixRoleAssignment -Message $Errormessage -ErrorInfo $_
+        Write-LogFile -Message $Errormessage -ErrorInfo $_
         Throw $_
         Exit
     }
@@ -387,23 +385,23 @@ function AssignAzureRole
         try
         {
             New-AzRoleAssignment -SignInName $SignInName -RoleDefinitionName $Role -Scope $Scope -ErrorAction Stop -WarningAction SilentlyContinue
-            $Message = "Successfully assigned role $Role to User $SignInName for Scope $Scope"
+            $Message = "Successfully assigned role $Role to User $SignInName for"
             Write-Host -ForegroundColor Green $Message
-            Write-LogFile -LogPrefix $Resourcename -Message $Message          
+            Write-LogFile -LogSuffix $Resourcename -Message $Message          
         }
         
         catch
         {
-            $Errormessage = "Failed to assign role $Role to user $SignInName for Scope $Scope"
+            $Errormessage = "Failed to assign role $Role to user $SignInName for"
             Write-Host -ForegroundColor Red $Errormessage
-            Write-LogFile -LogPrefix $Resourcename -Message $Errormessage -ErrorInfo $_
+            Write-LogFile -LogSuffix $Resourcename -Message $Errormessage -ErrorInfo $_
         }
     }
 
     else
     {
-        $Message = "No Scope was found for role assignment"
-        Write-LogFile -LogPrefix $Resourcename -Message $Message 
+        $Message = "No Scope for role assignment was found for resource"
+        Write-LogFile -LogSuffix $Resourcename -Message $Message 
     }
 }
 
@@ -423,15 +421,15 @@ function RetrieveParentDNSZone
         $ParentZone = Get-AzDnsZone | Where-Object Name -EQ $ParentZoneName -ErrorAction Stop
         $Message = "Successfully retrieved properties from parent DNS zone"
         # Write-Verbose -Message ($Message + " for zone " + $ParentZoneName)
-        Write-LogFile -LogPrefix $ParentZoneName -Message $Message
+        Write-LogFile -LogSuffix $ParentZoneName -Message $Message
         Return $ParentZone
     }
 
     catch
     {
-        $Errormessage = "Could not retrieve parent DNS Zone properties."
+        $Errormessage = "Could not retrieve parent DNS Zone properties for zone"
         # Write-Error -Message $Errormessage -Exception $_
-        Write-LogFile -LogPrefix $ParentZoneName -Message $Errormessage -ErrorInfo $_
+        Write-LogFile -LogSuffix $ParentZoneName -Message $Errormessage -ErrorInfo $_
         Throw $_
         Exit
     }
@@ -446,7 +444,7 @@ Function UpdateAndImportModule
         [string]$ModuleName
     )
 
-    $LogPrefixModules = "Module loading"
+    $LogSuffixModules = "Module loading"
     $InstalledModuleVersion = (Get-Module -ListAvailable | Where-Object Name -eq $($ModuleName) | Sort-Object Version -Descending | Select-Object Version -First 1).Version
 
     if ($InstalledModuleVersion)
@@ -464,13 +462,13 @@ Function UpdateAndImportModule
                 Update-Module -Name $ModuleName -Force -ErrorAction Stop
                 $Message = "Module $Modulename successfully updated"
                 Write-Host -ForegroundColor Green $Message
-                Write-LogFile -LogPrefix $LogPrefixModules -Message $Message
+                Write-LogFile -Message $Message
             }
 
             catch
             {
-                Write-LogFile -LogPrefix $LogPrefixModules -Message "Unable to update module $Modulename" -ErrorInfo $_
                 Write-Host -ForegroundColor Red "Unable to update module $ModuleName. See logfile for details."
+                Write-LogFile -Message "Unable to update module $Modulename" -ErrorInfo $_
                 Exit
             }
         }
@@ -483,13 +481,13 @@ Function UpdateAndImportModule
             Install-Module -Name $ModuleName -Force -ErrorAction Stop -Scope CurrentUser
             $Message = "Module $Modulename successfully installed"
             Write-Host -ForegroundColor Green $Message
-            Write-LogFile -LogPrefix $LogPrefixModules -Message $Message
+            Write-LogFile -Message $Message
         }
 
         catch
         {
-            Write-LogFile -LogPrefix $LogPrefixModules -Message "Unable to install module $Modulename" -ErrorInfo $_
             Write-Host -ForegroundColor Red "Unable to install module $ModuleName. See logfile for details."
+            Write-LogFile -Message "Unable to install module $Modulename" -ErrorInfo $_
             Exit
         }
     }
@@ -499,13 +497,13 @@ Function UpdateAndImportModule
         Import-Module -Name $ModuleName -ErrorAction Stop -WarningAction SilentlyContinue
         $Message = "Successfully loaded module $Modulename"
         Write-Host -ForegroundColor Green $Message
-        Write-LogFile -LogPrefix $LogPrefixModules -Message $Message
+        Write-LogFile -Message $Message
     }
 
     catch
     {
-        Write-LogFile -LogPrefix $LogPrefixModules -Message "Unable to import module $Modulename" -ErrorInfo $_
         Write-Host -ForegroundColor Red "Unable to import module $ModuleName. See logfile for details."
+        Write-LogFile -Message "Unable to import module $Modulename" -ErrorInfo $_
         Exit
     }
 }

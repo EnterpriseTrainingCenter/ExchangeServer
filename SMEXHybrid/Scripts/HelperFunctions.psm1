@@ -167,7 +167,7 @@ function NewAzureADUser
     if ($ClearTextPwd)
     {
         # Encrypt the given password
-        $SecurePassword = ConvertTo-SecurePassword -inputString $ClearTextPwd
+        $SecurePassword = $ClearTextPwd
     }
 
     else
@@ -191,7 +191,7 @@ function NewAzureADUser
         $Message = "Successfully created user"
         Write-Host -ForegroundColor Green ($Message + " " + $Username)
         Write-LogFile -LogPrefix $UserPrincipalName -Message $Message
-        WriteUserPasswordsToFile -Username $UserPrincipalName -Password $ClearTextPwd
+        WriteUserPasswordsToFile -Username $UserPrincipalName -Password $SecurePassword
         Return $NewUser
     }
     

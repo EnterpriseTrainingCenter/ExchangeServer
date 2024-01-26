@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>MTA-STS validator</title>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+		<link rel="stylesheet" href="mta-sts.css?v=3"/>
+		<script src="mta-sts.js?v=3" defer></script>
+	</head>
+	<body>
+		<div class="container-fluid">
+			<h1>MTA-STS validator</h1>
+
+			<!-- pattern: https://stackoverflow.com/a/106223/559350 -->
+			<p>
+				<form class="domain input-group input-group-lg">
+					<input placeholder="gmail.com" type="text" autocapitalize="none" autocorrect="off" inputmode="verbatim" class="form-control" required pattern="(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])">
+					<span class="input-group-append">
+						<button class="btn btn-primary">Check!</button>
+					</span>
+				</form>
+			</p>
+
+			<div id="summary">
+			</div>
+
+			<div id="report">
+			</div>
+
+			<h2>Background</h2>
+			<p><a href="https://tools.ietf.org/html/rfc8461">MTA-STS (RFC8461)</a> is a new standard that makes it possible to send downgrade-resistant email over SMTP. In that sense, it is like an alternative to DANE. It does this by piggybacking on the browser Certificate Authority model. This validator checks whether a domain adheres to the RFC. An alternative validator is <a href="https://www.hardenize.com/">Hardenize</a>, which checks for much more than just MTA-STS</p>
+
+			<p class="mb-0">To enable Strict Transport Security on your mailserver configure the following things:</p>
+
+			<ul>
+				<li>Check that your host has <a href="https://en.internet.nl/test-mail/">properly configured STARTTLS</a></li>
+				<li>Add a TLSRPT DNS TXT record at <code>_smtp._tls</code> on your domain, e.g. <code>_smtp._tls.example.com</code>, with something like <code>v=TLSRPTv1; rua=mailto:mta-sts@example.com</code>.</li>
+				<li>Add a MTA-STS DNS TXT record at <code>_mta-sts</code> on your domain, e.g. <code>_mta-sts.example.com</code>, with something like <code>v=STSv1; id=20160831085700Z</code>.</li>
+				<li>Add a subdomain <code>mta-sts</code> to your domain (note the lack of an underscore) and serve a policy file on <code>https://mta-sts.example.com/.well-known/mta-sts.txt</code>. Here is an example policy file:
+					<pre class="ml-4 mt-2 mb-2">
+version: STSv1
+mode: enforce
+max_age: 10368000
+mx: mail.example.com
+mx: *.example.net
+mx: backupmx.example.com</pre>
+				</li>
+				<li>Test this mail domain using this or <a href="https://www.hardenize.com/">another validator</a>.</li>
+			</ul>
+
+			<p>Created by: <a href="https://aykevl.nl/" rel="author">Ayke</a> (<a href="https://github.com/aykevl/mta-sts">source code</a>). If you encounter any errors, you can create a <a href="https://github.com/aykevl/mta-sts/issues/new">bug report</a> or alternatively <a href="https://aykevl.nl/about">send me a personal message</a>.
+		</div>
+
+		<div id="templates">
+			<div class="loading">
+				<h2>Summary</h2>
+				<p>Loading...</p>
+			</div>
+			<div class="rate-limit">
+				<p class="alert alert-danger" role="alert">Rate limited!</p>
+			</div>
+			<div class="other-error">
+				<p class="alert alert-danger" role="alert">Unknown error in the server. May be a rate-limit.</p>
+			</div>
+			<div class="template-report">
+				<h2>Details</h2>
+				<div class="report-mta-sts">
+					<h3 class="loading">
+						<div>MTA-STS TXT record</div>
+					</h3>
+					<div class="contents"></div>
+				</div>
+				<div class="report-tlsrpt">
+					<h3 class="loading">
+						<div>SMTP-TLSRPT TXT record</div>
+					</h3>
+					<div class="contents"></div>
+				</div>
+				<div class="report-policy">
+					<h3 class="loading">
+						<div>Policy file</div>
+					</h3>
+					<div class="contents"></div>
+				</div>
+				<div class="report-mx">
+					<h3 class="loading">
+						<div>Certificate check</div>
+					</h3>
+					<div class="contents"></div>
+				</div>
+				<div class="report-dane">
+					<h3 class="loading">
+						<div>DANE <sup style="font-weight: normal">[experimental]</sup></div>
+					</h3>
+					<dl class="parts"></dl>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

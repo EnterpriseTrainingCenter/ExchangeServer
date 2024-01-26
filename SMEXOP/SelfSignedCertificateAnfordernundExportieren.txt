@@ -1,0 +1,3 @@
+New-SelfSignedCertificate -KeyLength 2048 -Subject "cn=ExchangeOnline-ReadOnlyApp" -CertStoreLocation Cert:\CurrentUser\My\
+Export-Certificate -Cert Cert:\CurrentUser\My\0BDA43CE21CF2B4A2FCF567909145D8CCD60BF03 -FilePath c:\ExchangeOnline-ReadOnlyApp.cer
+Export-PfxCertificate -Cert Cert:\CurrentUser\My\0BDA43CE21CF2B4A2FCF567909145D8CCD60BF03 -FilePath c:\ExchangeOnline-ReadOnlyApp.pfx -Password (ConvertTo-SecureString -AsPlainText -Force -String 'Pa$$w0rd')

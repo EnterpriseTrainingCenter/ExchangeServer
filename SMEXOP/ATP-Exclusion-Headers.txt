@@ -1,0 +1,2 @@
+X-MS-Exchange-Organization-SkipSafeAttachmentProcessing
+X-MS-Exchange-Organization-SkipSafeLinksProcessing

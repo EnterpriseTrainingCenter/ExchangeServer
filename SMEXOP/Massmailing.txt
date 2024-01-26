@@ -1,0 +1,2 @@
+1..20 | % {Send-MailMessage -Body "Yeehaa!" -Subject Test$_ -From user3@smexop223.myetc.at  -To thomas.stickler@smexop224.myetc.at -SmtpServer outlook.office365.com -Port 587 -Credential $cred -UseSsl}
+

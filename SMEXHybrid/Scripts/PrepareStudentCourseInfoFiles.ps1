@@ -18,7 +18,7 @@ Else
 }
 
 # Import Excel File
-$x = Import-Excel -Path $Path.FullName -StartRow 3 -StartColumn 1 -EndColumn 12 -NoHeader
+$x = Import-Excel -Path $Path.FullName -StartRow 3 -StartColumn 1 -EndColumn 14 -NoHeader
 
 foreach ($entry in $x)
 {
@@ -30,15 +30,15 @@ foreach ($entry in $x)
         New-Item -ItemType File -Path $OutputFile -Force -Confirm:$false -WhatIf:$false | Out-Null
     }
     
-    Add-Content -Value "Teilnehmer-Domain:`t$($entry.p2)$($entry.P3)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
-    Add-Content -Value "Custom-Domain:`t`t$($entry.p2)$($entry.P3)$($entry.P4)`n" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
-    Add-Content -Value "Tenantdomain:`t`t$($entry.p5)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
-    Add-Content -Value "Tenantadmin:`t`t$($entry.p6)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "Teilnehmer-Domain:`t$($entry.p3)$($entry.P4)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "Custom-Domain:`t`t$($entry.p3)$($entry.P4)$($entry.P5)`n" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "Tenantdomain:`t`t$($entry.P6)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "Tenantadmin:`t`t$($entry.P7)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
     Add-Content -Value "Tenantadmin PW:`t`t$($entry.p7)`n" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
-    Add-Content -Value "Azure DNS User:`t`t$($entry.p10)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
-    Add-Content -Value "Azure DNS User PW:`t$($entry.p11)`n" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
-    Add-Content -Value "IP1:`t`t`t$($entry.p8)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
-    Add-Content -Value "IP2:`t`t`t$($entry.p9)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "Azure DNS User:`t`t$($entry.p13)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "Azure DNS User PW:`t$($entry.p14)`n" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "IP1:`t`t`t$($entry.p9)$($entry.P10)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "IP2:`t`t`t$($entry.p11)$($entry.P12)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
     Add-Content -Value "Subnet Mask:`t`t255.255.255.192" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
     Add-Content -Value "Gateway:`t`t78.142.168.129" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
 }

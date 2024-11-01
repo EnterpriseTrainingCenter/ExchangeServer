@@ -213,7 +213,7 @@ function AssignDNSAdminRole {
     }
 }
 
-# Function to create a new AAD user
+# Function to create a new Entra user
 function NewAzureADUser {
     [cmdletbinding()]
     Param
@@ -235,7 +235,7 @@ function NewAzureADUser {
     $PWProfile.EnforceChangePasswordPolicy = $false
     $PWProfile.ForceChangePasswordNextLogin = $false
     
-    # Create AAD user
+    # Create Entra user
     try {
         $Username = $UserPrincipalName.Split('@')[0].ToUpper()
         $NewUser = New-AzureADUser -DisplayName $Username -AccountEnabled $true -UserPrincipalName $UserPrincipalName -PasswordProfile $PWProfile -MailNickName $Username -ErrorAction Stop | Out-Null
@@ -421,13 +421,13 @@ else {
 # Connect to Azure
 ConnectToOnlineService -ServiceName Azure
 
-# Connect to Azure AD
+# Connect to Entra ID
 ConnectToOnlineService -ServiceName AzureAD
 
 # Retrieve parent DNS zone information
 $ParentZoneInfo = RetrieveParentDNSZone -ParentZoneName $ParentZoneName
 
-# Retrieve ObjectId of Azure AD User Group "StudentDNSAdmins"
+# Retrieve ObjectId of Entra ID User Group "StudentDNSAdmins"
 [string]$StudentDNSAdminGroupID = (Get-AzureADGroup -Filter "Displayname eq 'StudentDNSAdmins'").ObjectID
 
 # Loop through usercount and perform the magic...
@@ -436,7 +436,7 @@ for ($i = 1; $i -le $NumberOfStudents; $i++) {
     $StudentZoneID = $StudentCourseID + '.' + $ParentZoneName
     $StudentUPN = ($StudentCourseID + $UPNDomain)
 
-    # Create user account in AAD
+    # Create user account in Entra
     Write-Host "`r`n"
     NewAzureADUser -UserPrincipalName $StudentUPN
     
@@ -444,7 +444,7 @@ for ($i = 1; $i -le $NumberOfStudents; $i++) {
     Get-AzureADUser -ObjectId $StudentUPN | Out-Null
     
     # Wait for 20 seconds, so that AZ knows about the new user account...
-    Write-Host -ForegroundColor Green 'Waiting 20 seconds for AAD to converge...'
+    Write-Host -ForegroundColor Green 'Waiting 20 seconds for Entra to converge...'
     Start-Sleep -Seconds 20
     
     # Create new DNS child zone

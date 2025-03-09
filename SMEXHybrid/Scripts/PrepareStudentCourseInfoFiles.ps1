@@ -40,5 +40,5 @@ foreach ($entry in $x)
     Add-Content -Value "IP1:`t`t`t$($entry.p9)$($entry.P10)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
     Add-Content -Value "IP2:`t`t`t$($entry.p11)$($entry.P12)" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
     Add-Content -Value "Subnet Mask:`t`t255.255.255.192" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
-    Add-Content -Value "Gateway:`t`t78.142.168.129" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Add-Content -Value "Gateway:`t`t188.21.124.65" -Path $OutputFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
 }

@@ -23,7 +23,7 @@ $TLS12Protocol = [System.Net.SecurityProtocolType] 'Tls12'
 # Store TenantID, AppID nad Certificate Thumbrprint fpr Logon
 $TenantID = '905c7919-c8cb-479e-b394-6286e2875f10'
 $Appid = 'cce9c388-81d5-409a-878a-2590339025a8'
-$CertThumbprint = (Get-ChildItem Cert:\LocalMachine\My\ |? Subject -eq "cn=DNSAdminServiceLogon").Thumbprint
+$CertThumbprint = (Get-ChildItem Cert:\CurrentUser\My |Where-Object Subject -eq "cn=DNSAdminServiceLogon").Thumbprint
 
 # DNS Zone names and IDs
 $ParentZoneName = 'myetc.at'
@@ -58,6 +58,9 @@ $Script:NoLogging
 [string]$UserPasswordsFile = Join-Path -Path $BasePath (Join-Path 'Passwords' ($CourseID + '_Student-DNS-Admin-Passwords_{0:yyyyMMdd-HHmmss}.txt' -f [DateTime]::Now))
 # End Variable definition
 #
+
+# Required modules
+[array]$RequiredModules = @("Az.Accounts", "Az.Dns", "Az.Resources", "Microsoft.Entra.Authentication", "Microsoft.Entra.Users", "Microsoft.Entra.Groups")
 
 # Logging function
 function Write-LogFile {
@@ -111,17 +114,22 @@ function WriteUserPasswordsToFile {
         [Parameter(Mandatory = $true)]
         [string]$PW
     )
-    # Prefix the string to write with the current Date and Time, add error message if present...
 
+    # Create the userinfo string
+    # Format: Username,Password
     $UserInfo = ($Username + ',' + $PW)
 
-    # Create the Script:Logfile and folder structure if it doesn't exist
-    if (-not (Test-Path $UserPasswordsFile -PathType Leaf)) {
+    # Check if the passwords file exists, if not create it
+    if (-not (Test-Path $UserPasswordsFile -PathType Leaf))
+    {
+        # Create the passwords file
         New-Item -ItemType File -Path $UserPasswordsFile -Force -Confirm:$false -WhatIf:$false | Out-Null
+        # Add the header line to the file
+        # Header: Username,Password
         Add-Content -Value 'Username,Password' -Path $UserPasswordsFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
     }
 
-    # Write to the Script:Logfile
+    # Append the userinfo to the file
     Add-Content -Value $UserInfo -Path $UserPasswordsFile -Encoding UTF8 -WhatIf:$false -Confirm:$false
     Write-Verbose $UserInfo
 
@@ -214,7 +222,7 @@ function AssignDNSAdminRole {
 }
 
 # Function to create a new Entra user
-function NewAzureADUser {
+function NewEntraUser {
     [cmdletbinding()]
     Param
     (
@@ -238,18 +246,21 @@ function NewAzureADUser {
     # Create Entra user
     try {
         $Username = $UserPrincipalName.Split('@')[0].ToUpper()
-        $NewUser = New-AzureADUser -DisplayName $Username -AccountEnabled $true -UserPrincipalName $UserPrincipalName -PasswordProfile $PWProfile -MailNickName $Username -ErrorAction Stop | Out-Null
+        $newuser = New-EntraUser -DisplayName $Username -AccountEnabled $true -UserPrincipalName $UserPrincipalName -PasswordProfile $PWProfile -MailNickName $Username -ErrorAction Stop
         $Message = 'Successfully created user'
         Write-Host -ForegroundColor Green ($Message + ' ' + $Username)
         Write-LogFile -LogPrefix $UserPrincipalName -Message $Message
-        WriteUserPasswordsToFile -Username $UserPrincipalName -PW $PW
-        Return $NewUser
     }
     
     catch {
         $Errormessage = 'Could not create user'
         Write-Host -ForegroundColor Red ($Errormessage + ' ' + $Username + ':' + $_)
         Write-LogFile -LogPrefix $UserPrincipalName -Message $Errormessage -ErrorInfo $_
+    }
+
+    if (-not [System.String]::IsNullOrEmpty($newuser))
+    {
+        WriteUserPasswordsToFile -Username $UserPrincipalName -PW $PW
     }
 }
 
@@ -266,8 +277,8 @@ function AddUserToGroup {
     $GroupLogPrefix = 'Group StudentDNSAdmins'
 
     try {
-        $ReferenceUserID = (Get-AzureADUser -ObjectId $UserPrincipalName).ObjectID
-        Add-AzureADGroupMember -ObjectId $GroupID -RefObjectId $ReferenceUserID -ErrorAction Stop
+        $ReferenceUserID = (Get-EntraUser -ObjectId $UserPrincipalName).ObjectID
+        Add-EntraGroupMember -ObjectId $GroupID -RefObjectId $ReferenceUserID -ErrorAction Stop
         Write-LogFile -Message "Sucessfully added User $UserPrincipalName as member of group." -LogPrefix $GroupLogPrefix    
     }
     
@@ -283,16 +294,17 @@ function ConnectToOnlineService {
     Param
     (
         [Parameter(Mandatory = $true)]
-        [ValidateSet('Azure', 'AzureAD')]
+        [ValidateSet('Azure', 'Entra')]
         [string]$ServiceName
     )
     
     $LogPrefixConnection = 'Connection'
-
+    # Connect to Azure or Entra ID using the specified ServiceName
+    Write-LogFile -LogPrefix $LogPrefixConnection -Message "Connecting to $ServiceName Tenant with AppID $Appid and Certificate Thumbprint $CertThumbprint"
     try {
         Switch ($ServiceName) {
             'Azure' { Connect-AzAccount -ApplicationId $Appid -CertificateThumbprint $CertThumbprint -Tenant $TenantID -ErrorAction Stop }
-            'AzureAD' { Connect-AzureAD -ApplicationId $Appid -CertificateThumbprint $CertThumbprint -Tenant $TenantID -ErrorAction Stop }
+            'Entra' { Connect-Entra -ClientId $Appid -CertificateThumbprint $CertThumbprint -TenantId $TenantID -ErrorAction Stop }
         }
         
         $Message = "Successfully connected to $ServiceName Tenant."
@@ -302,7 +314,7 @@ function ConnectToOnlineService {
 
     catch {
         $Errormessage = "Could not connect to $ServiceName"
-        Write-Host -ForegroundColor Red -Message $Errormessage -Exception $_
+        Write-Host -ForegroundColor Red -Message $Errormessage
         Write-LogFile -LogPrefix $LogPrefixConnection -Message $Errormessage -ErrorInfo $_
         Throw $_
         Exit
@@ -335,8 +347,10 @@ function RetrieveParentDNSZone {
     }
 }
 
-Function UpdateAndImportModule {
-    Param(
+Function InstallOrUpdateModule
+{
+    Param
+    (
         [Parameter(Mandatory = $true)]
         [string]$ModuleName
     )
@@ -344,22 +358,26 @@ Function UpdateAndImportModule {
     $LogPrefixModules = 'Module loading'
     $InstalledModuleVersion = (Get-Module -ListAvailable | Where-Object Name -EQ $($ModuleName) | Sort-Object Version -Descending | Select-Object Version -First 1).Version
 
-    if ($InstalledModuleVersion) {
+    if ($InstalledModuleVersion)
+    {
 
         $OnlineModuleVersion = (Find-Module $ModuleName).Version
-
-        if ($OnlineModuleVersion -gt $InstalledModuleVersion) {
+        
+        if ($OnlineModuleVersion -gt $InstalledModuleVersion)
+        {
             Write-Host -ForegroundColor Green "A newer version for module $ModuleName is available. Trying to update..."
             Remove-Module $ModuleName -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 
-            try {
+            try
+            {
                 Update-Module -Name $ModuleName -Force -ErrorAction Stop
                 $Message = "Module $Modulename successfully updated"
                 Write-Host -ForegroundColor Green $Message
                 Write-LogFile -LogPrefix $LogPrefixModules -Message $Message
             }
-
-            catch {
+            
+            catch
+            {
                 Write-LogFile -LogPrefix $LogPrefixModules -Message "Unable to update module $Modulename" -ErrorInfo $_
                 Write-Host -ForegroundColor Red "Unable to update module $ModuleName. See logfile for details."
                 Exit
@@ -381,6 +399,14 @@ Function UpdateAndImportModule {
             Exit
         }
     }
+}
+function ImportModule
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ModuleName
+    )
 
     try {
         Import-Module -Name $ModuleName -ErrorAction Stop -WarningAction SilentlyContinue
@@ -395,7 +421,6 @@ Function UpdateAndImportModule {
         Exit
     }
 }
-
 #
 # Main Script
 
@@ -403,32 +428,31 @@ Function UpdateAndImportModule {
 if ($InstallOrUpdateModules) {   
     Write-Host -ForegroundColor Green 'Updating and importing modules...'
     Import-Module PackageManagement
-    Import-Module PowerShellGet 
-    UpdateAndImportModule -ModuleName Az.Accounts
-    UpdateAndImportModule -ModuleName Az.DNS
-    UpdateAndImportModule -ModuleName Az.Resources
-    UpdateAndImportModule -ModuleName AzureAD
+    Import-Module PowerShellGet
+    foreach ($module in $RequiredModules)
+    {
+        InstallOrUpdateModule -ModuleName $module
+    }
 }
 
-else {
-    Write-Host -ForegroundColor Green 'Importing modules...'
-    Import-Module Az.Accounts
-    Import-Module Az.Dns
-    Import-Module Az.Resources
-    Import-Module AzureAD
+# Import modules without updating
+Write-Host -ForegroundColor Green 'Importing modules...'
+foreach ($module in $RequiredModules)
+{
+    ImportModule -ModuleName $module
 }
 
 # Connect to Azure
 ConnectToOnlineService -ServiceName Azure
 
 # Connect to Entra ID
-ConnectToOnlineService -ServiceName AzureAD
+ConnectToOnlineService -ServiceName Entra
 
 # Retrieve parent DNS zone information
 $ParentZoneInfo = RetrieveParentDNSZone -ParentZoneName $ParentZoneName
 
 # Retrieve ObjectId of Entra ID User Group "StudentDNSAdmins"
-[string]$StudentDNSAdminGroupID = (Get-AzureADGroup -Filter "Displayname eq 'StudentDNSAdmins'").ObjectID
+[string]$StudentDNSAdminGroupID = (Get-EntraGroup -Filter "Displayname eq 'StudentDNSAdmins'").ObjectID
 
 # Loop through usercount and perform the magic...
 for ($i = 1; $i -le $NumberOfStudents; $i++) {
@@ -438,10 +462,10 @@ for ($i = 1; $i -le $NumberOfStudents; $i++) {
 
     # Create user account in Entra
     Write-Host "`r`n"
-    NewAzureADUser -UserPrincipalName $StudentUPN
+    NewEntraUser -UserPrincipalName $StudentUPN
     
     # Retrieve the user Account
-    Get-AzureADUser -ObjectId $StudentUPN | Out-Null
+    Get-EntraUser -ObjectId $StudentUPN | Out-Null
     
     # Wait for 20 seconds, so that AZ knows about the new user account...
     Write-Host -ForegroundColor Green 'Waiting 20 seconds for Entra to converge...'

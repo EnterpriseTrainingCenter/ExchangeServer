@@ -4,7 +4,7 @@ Param(
     [Parameter(Mandatory = $true)]
     [int]$NumberOfStudents,
     [string]$BasePath = 'C:\Temp',
-    [Parameter(Mandatory = $false)]    
+    [Parameter(Mandatory = $false)]
     [DateTime]$StartDate,
     [String]$CoursePrefix,
     [switch]$InstallOrUpdateModules
@@ -17,7 +17,7 @@ $TLS12Protocol = [System.Net.SecurityProtocolType] 'Tls12'
 #
 # Variable definition
 #
-# 
+#
 # $Tenantname = "myetcat.onmicrosoft.com"
 #
 # Store TenantID, AppID nad Certificate Thumbrprint fpr Logon
@@ -145,7 +145,7 @@ function NewDNSChildZone {
         [Parameter(Mandatory = $true)]
         [string]$ParentZoneName,
         [Parameter(Mandatory = $true)]
-        [string]$ResourceGroup  
+        [string]$ResourceGroup
     )
 
     try {
@@ -154,7 +154,7 @@ function NewDNSChildZone {
         Write-Host -ForegroundColor Green ($Message + ' ' + $ZoneName)
         Write-LogFile -LogPrefix $ZoneName -Message $Message
     }
-    
+
     catch {
         $Errormessage = 'Could not create DNS zone'
         Write-Host -ForegroundColor Red ($Errormessage + ' ' + $ZoneName) -Exception $_
@@ -169,18 +169,18 @@ function GeneratePassword {
         $private:ofs = ''
         return [String]$characters[$random]
     }
-    
-    function Scramble-String([string]$inputString) {     
-        $characterArray = $inputString.ToCharArray()   
-        $scrambledStringArray = $characterArray | Get-Random -Count $characterArray.Length     
+
+    function Scramble-String([string]$inputString) {
+        $characterArray = $inputString.ToCharArray()
+        $scrambledStringArray = $characterArray | Get-Random -Count $characterArray.Length
         $outputString = -join $scrambledStringArray
-        return $outputString 
+        return $outputString
     }
-    
+
     $PW = Get-RandomCharacters -length 5 -characters 'abcdefghiklmnoprstuvwxyz'
     $PW += Get-RandomCharacters -length 1 -characters 'ABCDEFGHKLMNOPRSTUVWXYZ'
     $PW += Get-RandomCharacters -length 2 -characters '1234567890'
-    $PW = Scramble-String $PW    
+    $PW = Scramble-String $PW
     Return $PW
 }
 
@@ -205,9 +205,9 @@ function AssignDNSAdminRole {
             New-AzRoleAssignment -SignInName $SignInName -RoleDefinitionName $Role -Scope $Scope -ErrorAction Stop -WarningAction SilentlyContinue
             $Message = "Successfully assigned role $Role to User $SignInName for Scope $Scope"
             Write-Host -ForegroundColor Green $Message
-            Write-LogFile -LogPrefix $ZoneName -Message $Message          
+            Write-LogFile -LogPrefix $ZoneName -Message $Message
         }
-        
+
         catch {
             $Errormessage = "Failed to assign role $Role to user $SignInName for Scope $Scope"
             Write-Host -ForegroundColor Red $Errormessage
@@ -217,7 +217,7 @@ function AssignDNSAdminRole {
 
     else {
         $Message = 'No Scope was found for role assignment'
-        Write-LogFile -LogPrefix $ZoneName -Message $Message 
+        Write-LogFile -LogPrefix $ZoneName -Message $Message
     }
 }
 
@@ -242,7 +242,7 @@ function NewEntraUser {
     # Disable passwordpolicy enforcement and do not require change password at next login
     $PWProfile.EnforceChangePasswordPolicy = $false
     $PWProfile.ForceChangePasswordNextLogin = $false
-    
+
     # Create Entra user
     try {
         $Username = $UserPrincipalName.Split('@')[0].ToUpper()
@@ -251,7 +251,7 @@ function NewEntraUser {
         Write-Host -ForegroundColor Green ($Message + ' ' + $Username)
         Write-LogFile -LogPrefix $UserPrincipalName -Message $Message
     }
-    
+
     catch {
         $Errormessage = 'Could not create user'
         Write-Host -ForegroundColor Red ($Errormessage + ' ' + $Username + ':' + $_)
@@ -271,7 +271,7 @@ function AddUserToGroup {
         [Parameter(Mandatory = $true)]
         [string]$UserPrincipalName,
         [Parameter(Mandatory = $true)]
-        [string]$GroupID 
+        [string]$GroupID
     )
 
     $GroupLogPrefix = 'Group StudentDNSAdmins'
@@ -279,9 +279,9 @@ function AddUserToGroup {
     try {
         $ReferenceUserID = (Get-EntraUser -ObjectId $UserPrincipalName).ObjectID
         Add-EntraGroupMember -ObjectId $GroupID -RefObjectId $ReferenceUserID -ErrorAction Stop
-        Write-LogFile -Message "Sucessfully added User $UserPrincipalName as member of group." -LogPrefix $GroupLogPrefix    
+        Write-LogFile -Message "Sucessfully added User $UserPrincipalName as member of group." -LogPrefix $GroupLogPrefix
     }
-    
+
     catch {
         $GroupErrorMessage = "Could not add User $UserPrincipalName as member if the group"
         Write-LogFile -LogPrefix $GroupLogPrefix -Message $GroupErrorMessage -ErrorInfo $_
@@ -297,7 +297,7 @@ function ConnectToOnlineService {
         [ValidateSet('Azure', 'Entra')]
         [string]$ServiceName
     )
-    
+
     $LogPrefixConnection = 'Connection'
     # Connect to Azure or Entra ID using the specified ServiceName
     Write-LogFile -LogPrefix $LogPrefixConnection -Message "Connecting to $ServiceName Tenant with AppID $Appid and Certificate Thumbprint $CertThumbprint"
@@ -306,7 +306,7 @@ function ConnectToOnlineService {
             'Azure' { Connect-AzAccount -ApplicationId $Appid -CertificateThumbprint $CertThumbprint -Tenant $TenantID -ErrorAction Stop }
             'Entra' { Connect-Entra -ClientId $Appid -CertificateThumbprint $CertThumbprint -TenantId $TenantID -ErrorAction Stop }
         }
-        
+
         $Message = "Successfully connected to $ServiceName Tenant."
         Write-Host -ForegroundColor Green $Message
         Write-LogFile -LogPrefix $LogPrefixConnection -Message $Message
@@ -362,7 +362,7 @@ Function InstallOrUpdateModule
     {
 
         $OnlineModuleVersion = (Find-Module $ModuleName).Version
-        
+
         if ($OnlineModuleVersion -gt $InstalledModuleVersion)
         {
             Write-Host -ForegroundColor Green "A newer version for module $ModuleName is available. Trying to update..."
@@ -375,7 +375,7 @@ Function InstallOrUpdateModule
                 Write-Host -ForegroundColor Green $Message
                 Write-LogFile -LogPrefix $LogPrefixModules -Message $Message
             }
-            
+
             catch
             {
                 Write-LogFile -LogPrefix $LogPrefixModules -Message "Unable to update module $Modulename" -ErrorInfo $_
@@ -425,7 +425,7 @@ function ImportModule
 # Main Script
 
 # import or update modules and assemblies
-if ($InstallOrUpdateModules) {   
+if ($InstallOrUpdateModules) {
     Write-Host -ForegroundColor Green 'Updating and importing modules...'
     Import-Module PackageManagement
     Import-Module PowerShellGet
@@ -463,20 +463,20 @@ for ($i = 1; $i -le $NumberOfStudents; $i++) {
     # Create user account in Entra
     Write-Host "`r`n"
     NewEntraUser -UserPrincipalName $StudentUPN
-    
+
     # Retrieve the user Account
     Get-EntraUser -ObjectId $StudentUPN | Out-Null
-    
+
     # Wait for 20 seconds, so that AZ knows about the new user account...
     Write-Host -ForegroundColor Green 'Waiting 20 seconds for Entra to converge...'
     Start-Sleep -Seconds 20
-    
+
     # Create new DNS child zone
     NewDNSChildZone -ZoneName $StudentZoneID -ParentZoneName $ParentZoneInfo.Name -ResourceGroup $ParentZoneInfo.ResourceGroupName
-    
+
     # Assign RBAC role for student user to DNS child zone
     AssignDNSAdminRole -ZoneName $StudentZoneID -SignInName $StudentUPN -Role $StudentRoleDefinitionName
-    
+
     # Add student user account to dashboard group
     AddUserToGroup -UserPrincipalName $StudentUPN -GroupID $StudentDNSAdminGroupID
 }

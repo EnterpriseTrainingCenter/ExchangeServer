@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0" xsi:type="MailApp">
+  <Id>8708688c-c933-4eb7-babc-33f601d65e8c</Id>
+  <Version>1.1.1.0</Version>
+  <ProviderName>EXPTA Consulting LLC</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="View Quarantine">
+	  <Override Locale="ar-SA" Value="عرض الحجر الصحي" />
+	  <Override Locale="bg-BG" Value="Вижте карантина" />
+	  <Override Locale="zh-CN" Value="查看检疫" />
+	  <Override Locale="zh-TW" Value="查看檢疫" />
+	  <Override Locale="hr-HR" Value="Pogledajte karantenu" />
+	  <Override Locale="cs-CZ" Value="Zobrazit karanténu" />
+	  <Override Locale="da-DK" Value="Se karantæne" />
+	  <Override Locale="nl-NL" Value="Quarantaine bekijken" />
+	  <Override Locale="et-EE" Value="Vaata karantiini" />
+	  <Override Locale="fi-FI" Value="Näytä karanteeni" />
+	  <Override Locale="fr-FR" Value="Afficher la quarantaine" />
+	  <Override Locale="de-DE" Value="Quarantäne anzeigen" />
+	  <Override Locale="el-GR" Value="Προβολή Καραντίνας" />
+	  <Override Locale="he-IL" Value="הצג הסגר" />
+	  <Override Locale="hu-HU" Value="Karantén megtekintése" />
+	  <Override Locale="id-ID" Value="Lihat karantina" />
+	  <Override Locale="it-IT" Value="Visualizza quarantena" />
+	  <Override Locale="ja-JP" Value="検疫を表示" />
+	  <Override Locale="ko-KR" Value="검역소 보기" />
+	  <Override Locale="lv-LV" Value="Skatīt karantīnu" />
+	  <Override Locale="lt-LT" Value="Žiūrėti karantiną" />
+	  <Override Locale="nb-NO" Value="Se karantene" />
+	  <Override Locale="pl-PL" Value="Wyświetl kwarantannę" />
+	  <Override Locale="pt-BR" Value="Exibir quarentena" />
+	  <Override Locale="pt-PT" Value="Ver quarentena" />
+	  <Override Locale="ro-RO" Value="Vizualizați Carantina" />
+	  <Override Locale="ru-RU" Value="Просмотр карантина" />
+	  <Override Locale="sr-Latn-RS" Value="Prikaži karantin" />
+	  <Override Locale="sk-SK" Value="Zobraziť karanténu" />
+	  <Override Locale="sl-SL" Value="Oglejte si karanteno" />
+	  <Override Locale="es-ES" Value="Ver cuarentena" />
+	  <Override Locale="sv-SE" Value="Se karantän" />
+	  <Override Locale="th-TH" Value="ดูการกักกัน" />
+	  <Override Locale="tr-TR" Value="Karantinayı görüntüle" />
+	  <Override Locale="uk-UA" Value="Переглянути карантин" />
+	  <Override Locale="vi-VN" Value="Xem vùng cách ly" />
+  </DisplayName>
+  <Description DefaultValue="View the Microsoft 365 end-user quarantine in a browser." />
+  <IconUrl DefaultValue="https://www.expta.com/quarantine/assets/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://www.expta.com/quarantine/assets/icon-128.png"/>
+  <SupportUrl DefaultValue="https://www.expta.com"/>
+  <AppDomains>
+    <AppDomain>https://www.expta.com</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.1"/>
+    </Sets>
+  </Requirements>
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://www.expta.com/quarantine/taskpane.html"/>
+        <RequestedHeight>250</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Requirements>
+      <bt:Sets DefaultMinVersion="1.3">
+        <bt:Set Name="Mailbox"/>
+      </bt:Sets>
+    </Requirements>
+    <Hosts>
+      <Host xsi:type="MailHost">
+        <DesktopFormFactor>
+          <FunctionFile resid="Commands.Url"/>
+          <ExtensionPoint xsi:type="MessageReadCommandSurface">
+            <OfficeTab id="TabDefault">
+              <Group id="msgReadGroup">
+                <Label resid="GroupLabel"/>
+                <Control xsi:type="Button" id="ActionButton">
+                  <Label resid="ActionButton.Label"/>
+                  <Supertip>
+                    <Title resid="ActionButton.Label"/>
+                    <Description resid="ActionButton.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction">
+                    <FunctionName>action</FunctionName>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://www.expta.com/quarantine/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="https://www.expta.com/quarantine/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="https://www.expta.com/quarantine/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Commands.Url" DefaultValue="https://www.expta.com/quarantine/commands.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GroupLabel" DefaultValue="Add-in"/>
+        <bt:String id="ActionButton.Label" DefaultValue="View Quarantine"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="ActionButton.Tooltip" DefaultValue="Opens the Microsoft 365 end-user quarantine in a browser window."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

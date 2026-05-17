@@ -465,7 +465,7 @@ for ($i = 1; $i -le $NumberOfStudents; $i++) {
     NewEntraUser -UserPrincipalName $StudentUPN
 
     # Retrieve the user Account
-    Get-EntraUser -ObjectId $StudentUPN | Out-Null
+    Get-EntraUser -UserId $StudentUPN | Out-Null
 
     # Wait for 20 seconds, so that AZ knows about the new user account...
     Write-Host -ForegroundColor Green 'Waiting 20 seconds for Entra to converge...'

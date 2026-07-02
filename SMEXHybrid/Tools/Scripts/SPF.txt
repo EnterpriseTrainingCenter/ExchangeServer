@@ -1,0 +1,1 @@
+"v=spf1 include:spf.protection.outlook.com  ip4:78.142.168. -all"

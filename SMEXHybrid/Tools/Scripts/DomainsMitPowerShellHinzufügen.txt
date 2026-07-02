@@ -1,0 +1,5 @@
+Install-Module MSOnline -Force
+Connect-MsolService
+New-MsolDomain -Name xyz.com
+(Get-MsolDomainVerificationDns -DomainName xyz.com -Mode DnsTxtRecord).Text
+Confirm-MsolDomain -DomainName yxz.com

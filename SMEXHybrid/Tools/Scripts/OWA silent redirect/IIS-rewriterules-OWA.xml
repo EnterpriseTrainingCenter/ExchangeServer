@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<appcmd>
+    <CONFIG CONFIG.SECTION="system.webServer/rewrite/rules" path="MACHINE/WEBROOT/APPHOST/Default Web Site" overrideMode="Inherit" locked="false">
+        <system.webServer-rewrite-rules>
+            <rule name="OWA silent redirect" enabled="true" patternSyntax="Wildcard" stopProcessing="true">
+                <match url="*owa/Auth/errorFE.aspx*" />
+                <conditions>
+                    <add input="{REQUEST_URI}" pattern="*M365x58116051.mail.onmicrosoft.com*" />
+                </conditions>
+                <serverVariables>
+                </serverVariables>
+                <action type="Redirect" url="https://outlook.com/owa/sh2342t.myetc.at" appendQueryString="false" redirectType="Found" />
+            </rule>
+        </system.webServer-rewrite-rules>
+    </CONFIG>
+</appcmd>

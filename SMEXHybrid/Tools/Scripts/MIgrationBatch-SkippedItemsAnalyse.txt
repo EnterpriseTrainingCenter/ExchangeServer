@@ -1,0 +1,12 @@
+Statistik des Migrationsusers abrufen, der Skipped Items hat und in XML speichern:
+Get-EOMigrationUserStatistics -Identity pfmailbox1 -IncludeReport -DiagnosticInfo "showtimeslots, showtimeline, verbose" -IncludeSkippedItems | Export-Clixml -Path C:\PF-Mig\Migstats.xml
+
+XML einlesen:
+$xml =Import-Clixml -Path C:\PF-Mig\Migstats.xml
+
+Für einzelnen Eintrag:
+$xml2 = $xml.Report.Entries | ? {$_.message -like "*Folder ACL*"} | select -First 1
+$xml2.Failure
+
+Für alle Einträge:
+$xml.Report.Entries | ? {$_.message -like "*Folder ACL*"} | %{$_.Failure.DataContext}

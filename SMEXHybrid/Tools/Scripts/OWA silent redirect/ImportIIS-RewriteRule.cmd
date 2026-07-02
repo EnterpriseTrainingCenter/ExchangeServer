@@ -1,0 +1,1 @@
+C:\Windows\System32\inetsrv\appcmd.exe set config "Default Web Site" -in < %1

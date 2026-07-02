@@ -1,0 +1,1 @@
+Set-ADUser -Identity user -Replace @{"msExchRecipientDisplayType"="-1073741818"}

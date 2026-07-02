@@ -1,0 +1,1 @@
+Import-ExchangeCertificate -FileData (Get-Content -Path C:\Users\administrator.SMART\Desktop\smexhX.crt -ReadCount 0 -Encoding byte) -Server EX2019-1 | Enable-ExchangeCertificate -Services IIS,SMTP -Server ex2019-1

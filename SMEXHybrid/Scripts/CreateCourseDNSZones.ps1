@@ -304,7 +304,7 @@ function ConnectToOnlineService {
     try {
         Switch ($ServiceName) {
             'Azure' { Connect-AzAccount -ApplicationId $Appid -CertificateThumbprint $CertThumbprint -Tenant $TenantID -ErrorAction Stop }
-            'Entra' { Connect-Entra -ClientId $Appid -CertificateThumbprint $CertThumbprint -TenantId $TenantID -ErrorAction Stop }
+            'Entra' { Connect-MgGraph -ClientId $Appid -CertificateThumbprint $CertThumbprint -TenantId $TenantID -ErrorAction Stop }
         }
 
         $Message = "Successfully connected to $ServiceName Tenant."
